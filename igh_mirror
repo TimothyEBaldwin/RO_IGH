@@ -33,24 +33,7 @@ parser.add_argument("products", nargs="*")
 args = parser.parse_args()
 
 if not args.products:
-    args.products = (
-        "Products/BCM2835.git",
-        "Products/BCM2835Pico.git",
-        "Products/Batch1to6.git",
-        "Products/BonusBin.git",
-        "Products/BuildHost.git",
-        "Products/Disc.git",
-        "Products/IOMDHAL.git",
-        "Products/OMAP3.git",
-        "Products/OMAP4.git",
-        "Products/OMAP5.git",
-        "Products/PlingSystem.git",
-        "Products/S3C.git",
-        "Products/Titanium.git",
-        "Products/Tungsten.git",
-        "Products/iMx6.git",
-        "Products/All.git"
-        )
+    args.products = igh.all_products
 
 def get_branch(name, module, branch):
     module = posixpath.normpath(posixpath.join(product, module))

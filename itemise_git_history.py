@@ -27,6 +27,25 @@ import pdb
 
 import pygit2
 
+all_products = (
+  "Products/BCM2835.git",
+  "Products/BCM2835Pico.git",
+  "Products/Batch1to6.git",
+  "Products/BonusBin.git",
+  "Products/BuildHost.git",
+  "Products/Disc.git",
+  "Products/IOMDHAL.git",
+  "Products/OMAP3.git",
+  "Products/OMAP4.git",
+  "Products/OMAP5.git",
+  "Products/PlingSystem.git",
+  "Products/S3C.git",
+  "Products/Titanium.git",
+  "Products/Tungsten.git",
+  "Products/iMx6.git",
+  "Products/All.git"
+)
+
 path_map = {
   # This dict is derived from a table provided by RISC OS Open Limited
   "RiscOS/Sources/Apps/Diversions/MineHuntBin":                          "RiscOS/Sources/Apps/Diversions/MineHunt",
