@@ -1,0 +1,179 @@
+#!/usr/bin/python3
+
+# Copyright 2018, 2019 Timothy Baldwin
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import itemise_git_history as igh
+import sys
+import gc
+import argparse
+import posixpath
+import os
+import pygit2
+from urllib.parse import urljoin
+
+sys.setrecursionlimit(10000)
+repos = dict()
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--repo", default="unified")
+parser.add_argument("--push-cache", default="push_cache.json")
+parser.add_argument("--remote", default="https://gitlab.riscosopen.org/")
+parser.add_argument("--update", action="store_true")
+parser.add_argument("--update-pushes", action="store_true")
+parser.add_argument("products", nargs="*")
+args = parser.parse_args()
+
+if not args.products:
+    args.products = (
+        "Products/BCM2835.git",
+        "Products/BCM2835Pico.git",
+        "Products/Batch1to6.git",
+        "Products/BonusBin.git",
+        "Products/BuildHost.git",
+        "Products/Disc.git",
+        "Products/IOMDHAL.git",
+        "Products/OMAP3.git",
+        "Products/OMAP4.git",
+        "Products/OMAP5.git",
+        "Products/PlingSystem.git",
+        "Products/S3C.git",
+        "Products/Titanium.git",
+        "Products/Tungsten.git",
+        "Products/iMx6.git",
+        "Products/All.git"
+        )
+
+def get_branch(name, module, branch):
+
+    r = repos.get(name)
+    if r is None:
+        try:
+            remote = repo.remotes[name]
+        except KeyError:
+            repo.remotes.create(name, urljoin(product_url, module))
+            repo.remotes.add_fetch(name, "+refs/tags/*:refs/utags/" + name + "/*")
+            remote = repo.remotes[name]
+            print("Fetching new", name)
+            remote.fetch(refspecs=remote.fetch_refspecs)
+        else:
+            if args.update:
+                print("Fetching", name)
+                remote.fetch(refspecs=remote.fetch_refspecs)
+
+        r = igh.load_repository(name, repo, prefix="refs/remotes/" + name + "/", update=args.update_pushes)
+        repos[name] = r
+    return r[branch]
+
+repo = pygit2.Repository(args.repo)
+
+submodule2unified = {}
+unified2submodule = {}
+
+def unify_commit(old_id):
+    new = submodule2unified.get(old_id)
+    if new is None:
+        old = repo[old_id]
+        new = repo.create_commit(None, old.author, old.committer, old.message, unify_tree(
+            old.tree_id), [unify_commit(x) for x in old.parent_ids])
+        submodule2unified[old_id] = new
+        unified2submodule[new] = old_id
+    return new
+
+
+trees2unified = {}
+def unify_tree(old):
+    new = trees2unified.get(old)
+    if new is not None:
+        return new
+
+    tb = repo.TreeBuilder()
+    for te in repo[old]:
+        if te.filemode == pygit2.GIT_FILEMODE_TREE:
+            tb.insert(te.name, unify_tree(te.id), pygit2.GIT_FILEMODE_TREE)
+        elif te.filemode == pygit2.GIT_FILEMODE_COMMIT:
+            tb.insert(te.name, repo[te.id].tree_id, pygit2.GIT_FILEMODE_TREE)
+        else:
+            tb.insert(te.name, te.id, te.filemode)
+    new = tb.write()
+    trees2unified[old] = new
+    return new
+
+igh.push_cache_file = args.push_cache
+igh.load_push_cache()
+
+try:
+    for product in args.products:
+
+        name = product
+        if name.endswith(".git"):
+            name = name[:-4]
+
+        product_url = args.remote
+        master = get_branch(name, product, "master")
+        product_url = repo.remotes[name].url + "/"
+
+        out = igh.convert(repo, master, posixpath.basename(name), get_branch)
+        repo.create_reference("refs/heads/" + name + "/all-commits", out, force=True)
+        repo.create_reference("refs/heads/" + name + "/unified", unify_commit(out), force=True)
+finally:
+    igh.save_push_cache()
+
+
+new_refs = dict()
+
+def read_tree(oid, path):
+    for leaf in path.split("/"):
+        oid = repo[oid][leaf].id
+    return oid
+
+def split_branch(ref1):
+    unified_ids = []
+    unified_id = repo.lookup_reference(ref1).target
+    split_id = unified2submodule.get(unified_id)
+    if split_id is not None:
+        return
+
+    while split_id is None:
+        unified = repo[unified_id]
+        if len(unified.parent_ids) < 1:
+            return
+        unified_ids.append(unified_id)
+        unified_id = unified.parent_ids[0]
+        split_id = unified2submodule.get(unified_id)
+
+    index = pygit2.Index()
+    index.read_tree(repo[repo[split_id].tree_id])
+
+    for unified_id in reversed(unified_ids):
+        unified = repo[unified_id]
+        for ie in index:
+            if ie.mode == pygit2.GIT_FILEMODE_COMMIT:
+                tid = read_tree(unified.tree_id, ie.path)
+                if tid != repo[ie.id].tree_id:
+                    ie.id =repo.create_commit(None, unified.author, unified.committer, unified.message, tid, [ie.id])
+                    new_refs[ref1 + "-" + ie.path] = ie.id
+                    index.add(ie)
+        split_id = repo.create_commit(None, unified.author, unified.committer, unified.message, index.write_tree(repo), [split_id])
+        unified2submodule[unified_id] = split_id
+
+    new_refs[ref1 + "-split"] = split_id
+
+
+for ref1 in repo.listall_references():
+    if ref1.startswith("refs/heads/"):
+        split_branch(ref1)
+
+for name, target in new_refs.items():
+    repo.references.create(name, target, force=True)

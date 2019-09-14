@@ -1,0 +1,82 @@
+#!/usr/bin/python3
+
+# Copyright 2018, 2019 Timothy Baldwin
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import itemise_git_history as igh
+import sys
+import argparse
+import posixpath
+import os
+
+sys.setrecursionlimit(10000)
+repos = dict()
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--tree", default="repositories")
+parser.add_argument("--push-cache")
+parser.add_argument("--remote", default="https://gitlab.riscosopen.org/")
+parser.add_argument("--update", action="store_true")
+parser.add_argument("--update-pushes", action="store_true")
+parser.add_argument("products", nargs="*")
+args = parser.parse_args()
+
+if not args.products:
+    args.products = (
+        "Products/BCM2835.git",
+        "Products/BCM2835Pico.git",
+        "Products/Batch1to6.git",
+        "Products/BonusBin.git",
+        "Products/BuildHost.git",
+        "Products/Disc.git",
+        "Products/IOMDHAL.git",
+        "Products/OMAP3.git",
+        "Products/OMAP4.git",
+        "Products/OMAP5.git",
+        "Products/PlingSystem.git",
+        "Products/S3C.git",
+        "Products/Titanium.git",
+        "Products/Tungsten.git",
+        "Products/iMx6.git",
+        "Products/All.git"
+        )
+
+def get_branch(name, module, branch):
+    module = posixpath.normpath(posixpath.join(product, module))
+    if module.startswith("../") or module.startswith("/"):
+        raise RuntimeError("Bad module name " + module)
+
+    r = repos.get(module)
+    if r is None:
+        r = igh.open_repository(posixpath.join(args.remote, module), os.path.join(args.tree, module), args.update)
+        r = igh.load_repository(name, r, update=args.update_pushes)
+        repos[module] = r
+    return r[branch]
+
+if args.push_cache:
+    igh.push_cache_file = args.push_cache
+else:
+    igh.push_cache_file = os.path.join(args.tree, "push_cache.json")
+igh.load_push_cache()
+
+try:
+    for product in args.products:
+        repo = igh.open_repository(posixpath.join(args.remote, product), os.path.join(args.tree, product), args.update)
+        if product.endswith(".git"):
+            product = product[:-4]
+        out = igh.convert(repo, igh.load_repository(product, repo, update=args.update_pushes)["master"], posixpath.basename(product), get_branch)
+        repo.create_reference("refs/heads/all-commits", out, force=True)
+        del repo
+finally:
+    igh.save_push_cache()
