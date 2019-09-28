@@ -87,7 +87,7 @@ def unify_tree(old):
             tb.insert(te.name, unify_tree(te.id), pygit2.GIT_FILEMODE_TREE)
         elif te.filemode == pygit2.GIT_FILEMODE_COMMIT:
             tb.insert(te.name, repo[te.id].tree_id, pygit2.GIT_FILEMODE_TREE)
-        else:
+        elif te.name != ".gitmodules":
             tb.insert(te.name, te.id, te.filemode)
     new = tb.write()
     trees2unified[old] = new
