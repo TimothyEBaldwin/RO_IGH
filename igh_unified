@@ -38,6 +38,11 @@ args = parser.parse_args()
 if not args.products:
     args.products = igh.all_products
 
+class RemoteCallbacks(pygit2.RemoteCallbacks):
+    def _fill_fetch_options(self, fetch_opts):
+        super()._fill_fetch_options(fetch_opts)
+        fetch_opts.download_tags = 2
+
 def get_branch(name, module, branch):
 
     r = repos.get(name)
@@ -49,11 +54,11 @@ def get_branch(name, module, branch):
             repo.remotes.add_fetch(name, "+refs/tags/*:refs/utags/" + name + "/*")
             remote = repo.remotes[name]
             print("Fetching new", name)
-            remote.fetch(refspecs=remote.fetch_refspecs)
+            remote.fetch(refspecs=remote.fetch_refspecs, callbacks=RemoteCallbacks())
         else:
             if args.update:
                 print("Fetching", name)
-                remote.fetch(refspecs=remote.fetch_refspecs)
+                remote.fetch(refspecs=remote.fetch_refspecs, callbacks=RemoteCallbacks())
 
         r = igh.load_repository(name, repo, prefix="refs/remotes/" + name + "/", update=args.update_pushes)
         repos[name] = r
