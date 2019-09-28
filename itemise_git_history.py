@@ -219,30 +219,7 @@ redate_map = {
   "4022e43f3e11dd3f22498ec48d8a021923aeb20d": "2019-07-20T07:39:50.615Z", # RiscOS/BuildSys
   "37d148dd60fd7d1dca4a99bac13d7348e1230b3a": "2019-07-20T08:21:46.545Z", # Products/OMAP5
   "14d0a6d62bbbe7f5a12c510a9a9e4c2f6f1ab38d": "2019-07-27T08:07:19.378Z", # RiscOS/Sources/Lib/RISC_OSLib
-  "12a389b23a27a00ec36d2b23b0e62034ea2a63d0": "2019-08-03T21:20:14.347Z", # RiscOS/Sources/HAL/HAL_BCM2835
-  "34d04d6b2ba8a1e299ced41ebdf988bce827da01": "2019-08-10T11:06:00.058Z", # RiscOS/Sources/HAL/HAL_BCM2835
-  "029f88ff2678435cf02ebdb3820cbaac8426597d": "2019-08-10T11:06:26.383Z", # RiscOS/Sources/HWSupport/SD/SDIODriver
-  "b3b95b4bc84d7d1eb9f3d42c7b6613a94421c1f4": "2019-08-16T12:22:43.187Z", # RiscOS/Sources/Kernel
-  "b20c8032d35c39b87f0b8d86ee617058c15a476b": "2019-08-16T12:23:03.752Z", # RiscOS/Sources/Apps/FormEd
-  "3be21b3bcd0a84528adce9244b8541e9b69adf5b": "2019-08-17T11:35:03.894Z", # RiscOS/Sources/Apps/Paint
-  "32f2e3897db8c7eb48601f8f5c09f41eb5c566b9": "2019-08-17T14:08:53.806Z", # RiscOS/Sources/Desktop/Wimp
-  "ce813bb2a3728b972cfca4ac117e78530902d2cb": "2019-08-17T14:35:12.883Z", # RiscOS/Sources/SystemRes/LoadWimp
-  "a6edfe0c346129bb4e0b112a50fb7e6f97434b7c": "2019-08-17T14:43:12.107Z", # RiscOS/Sources/SystemRes/DesktopBoot
-  "7d91c6019515d3a77ef1947da525b44fd4e2c39e": "2019-08-19T22:04:04.598Z", # RiscOS/Sources/Programmer/HdrSrc
-  "21ff3d723f47a96b46d1f2d322d31a81b6bec747": "2019-08-19T22:04:26.543Z", # RiscOS/Library
-  "fc93042136d6a83c5bf3699657da82c76e4619b8": "2019-08-22T07:19:08.959Z", # RiscOS/Sources/FileSys/ADFS/ADFSFiler
-  "eff0967cb6853bd185449ccde80e3c480619f837": "2019-08-25T17:19:12.241Z", # RiscOS/Sources/Apps/Paint
-  "30d277db366b17e3518d6365855ef1ed501bd954": "2019-08-25T17:19:44.203Z", # RiscOS/Sources/FileSys/ADFS/ADFSFiler
-  "2793a7a23dd94bd75b41f6fddb290e3aa6aeb714": "2019-08-25T17:21:07.704Z", # RiscOS/Sources/HAL/HAL_Titanium
-  "ddf8d828ba36a21d44b733a787915e24b38c8f83": "2019-08-30T23:00:12.412Z", # RiscOS/Sources/SystemRes/InetRes
-  "ae3da5a739149212a9669d091cff158c07da5630": "2019-09-09T17:42:09.654Z", # RiscOS/Sources/Networking/Fetchers/AcornSSL
-  "dda94028debe6c5c3459d13d017eafd0a02f2a02": "2019-09-12T12:19:24.821Z", # RiscOS/Sources/Programmer/HdrSrc
-  "ea143e3f5cc6db6170b938088b6fe90a632d7b73": "2019-09-14T07:23:52.286Z", # RiscOS/Sources/HWSupport/BCMSupport
-  "91be98a0bd46bf3111e0c726e47bcd112ce826f5": "2019-09-21T07:49:16.983Z", # RiscOS/Sources/Lib/mbedTLS
-  "bd294cf9980dc8929d58a777150d0450ecd56fc2": "2019-09-21T07:49:28.943Z", # RiscOS/Sources/Kernel
-  "18f461a570571d004825166f96fd5356273e43d9": "2019-09-22T16:43:57.277Z", # RiscOS/Sources/Apps/Paint
-  "6a84fc4e05c3250b21730dfa0c17c1d15e5ae40f": "2019-09-26T07:15:55.523Z", # RiscOS/Sources/Apps/Paint
-  "b886fe56f3d5a837001a396aa9b03694b221988b": "2019-09-26T22:19:34.386Z"  # RiscOS/Sources/Apps/Paint
+  "12a389b23a27a00ec36d2b23b0e62034ea2a63d0": "2019-08-03T21:20:14.347Z"  # RiscOS/Sources/HAL/HAL_BCM2835
 }
 
 rearrange_date = datetime.datetime(2011, 3, 17, 19, 32).timestamp()
