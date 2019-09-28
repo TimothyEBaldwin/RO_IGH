@@ -28,10 +28,8 @@ repos = dict()
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--repo", default="unified")
-parser.add_argument("--push-cache", default="push_cache.json")
 parser.add_argument("--remote", default="https://gitlab.riscosopen.org/")
 parser.add_argument("--update", action="store_true")
-parser.add_argument("--update-pushes", action="store_true")
 parser.add_argument("products", nargs="*")
 args = parser.parse_args()
 
@@ -60,7 +58,7 @@ def get_branch(name, module, branch):
                 print("Fetching", name)
                 remote.fetch(refspecs=remote.fetch_refspecs, callbacks=RemoteCallbacks())
 
-        r = igh.load_repository(name, repo, prefix="refs/remotes/" + name + "/", update=args.update_pushes)
+        r = igh.load_repository(name, repo, prefix="refs/remotes/" + name + "/")
         repos[name] = r
     return r[branch]
 
@@ -98,25 +96,20 @@ def unify_tree(old):
     trees2unified[old] = new
     return new
 
-igh.push_cache_file = args.push_cache
-igh.load_push_cache()
 
-try:
-    for product in args.products:
+for product in args.products:
 
-        name = product
-        if name.endswith(".git"):
-            name = name[:-4]
+    name = product
+    if name.endswith(".git"):
+        name = name[:-4]
 
-        product_url = args.remote
-        master = get_branch(name, product, "master")
-        product_url = repo.remotes[name].url + "/"
+    product_url = args.remote
+    master = get_branch(name, product, "master")
+    product_url = repo.remotes[name].url + "/"
 
-        out = igh.convert(repo, master, posixpath.basename(name), get_branch)
-        repo.create_reference("refs/heads/" + name + "/all-commits", out, force=True)
-        repo.create_reference("refs/heads/" + name + "/unified", unify_commit(out), force=True)
-finally:
-    igh.save_push_cache()
+    out = igh.convert(repo, master, posixpath.basename(name), get_branch)
+    repo.create_reference("refs/heads/" + name + "/all-commits", out, force=True)
+    repo.create_reference("refs/heads/" + name + "/unified", unify_commit(out), force=True)
 
 
 new_refs = dict()

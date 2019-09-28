@@ -25,10 +25,8 @@ repos = dict()
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--tree", default="repositories")
-parser.add_argument("--push-cache")
 parser.add_argument("--remote", default="https://gitlab.riscosopen.org/")
 parser.add_argument("--update", action="store_true")
-parser.add_argument("--update-pushes", action="store_true")
 parser.add_argument("products", nargs="*")
 args = parser.parse_args()
 
@@ -43,23 +41,14 @@ def get_branch(name, module, branch):
     r = repos.get(module)
     if r is None:
         r = igh.open_repository(posixpath.join(args.remote, module), os.path.join(args.tree, module), args.update)
-        r = igh.load_repository(name, r, update=args.update_pushes)
+        r = igh.load_repository(name, r)
         repos[module] = r
     return r[branch]
 
-if args.push_cache:
-    igh.push_cache_file = args.push_cache
-else:
-    igh.push_cache_file = os.path.join(args.tree, "push_cache.json")
-igh.load_push_cache()
-
-try:
-    for product in args.products:
-        repo = igh.open_repository(posixpath.join(args.remote, product), os.path.join(args.tree, product), args.update)
-        if product.endswith(".git"):
-            product = product[:-4]
-        out = igh.convert(repo, igh.load_repository(product, repo, update=args.update_pushes)["master"], posixpath.basename(product), get_branch)
-        repo.create_reference("refs/heads/all-commits", out, force=True)
-        del repo
-finally:
-    igh.save_push_cache()
+for product in args.products:
+    repo = igh.open_repository(posixpath.join(args.remote, product), os.path.join(args.tree, product), args.update)
+    if product.endswith(".git"):
+        product = product[:-4]
+    out = igh.convert(repo, igh.load_repository(product, repo)["master"], posixpath.basename(product), get_branch)
+    repo.create_reference("refs/heads/all-commits", out, force=True)
+    del repo

@@ -17,13 +17,7 @@ import heapq
 import os
 import posixpath
 import re
-import urllib.request
-import urllib.parse
-import json
-import pprint
-import collections
 import datetime
-import pdb
 
 import pygit2
 
@@ -126,47 +120,133 @@ path_map = {
   "RiscOS/Sources/Video/Render/Fonts/FontManager":                       "RiscOS/Sources/Video/Render/Fonts/Manager"
 }
 
+redate_map = {
+  "3006b4492c7877b853a00eab339dda2033479396": "2019-05-11T04:57:42.413Z", # Products/BonusBin
+  "b4ce2a51605719cd3724d9ad5d5383e16f169441": "2019-05-11T04:57:55.955Z", # Products/Disc
+  "a0aa4e580bca75b9b084134dfcf96f031eb96209": "2019-05-11T04:58:20.710Z", # Products/PlingSystem
+  "a8101de3ad4f3d531367542bf48449d5cf00c368": "2019-05-11T09:45:33.349Z", # RiscOS/Tools/Sources/GNU/bison
+  "36ed95f7a6b73d7bf24d34bfe8fcdfc824c08114": "2019-05-11T09:50:41.584Z", # RiscOS/Sources/Utilities/Connector
+  "b255700bdc7a9fe05c26282f7ae3afd039be5f22": "2019-05-11T10:00:38.154Z", # RiscOS/Tools/Sources/GNU/defmod
+  "9894f4371bb02a3c36dea387614a03ae385ae543": "2019-05-11T10:01:58.431Z", # RiscOS/Sources/Lib/Desk
+  "4985ff76f698cbca6f220784a82e9f09ec21a424": "2019-05-11T10:03:19.514Z", # RiscOS/Sources/HWSupport/USB/Controllers/EHCIDriver
+  "cfb2e2913277fdaa3e50c845f406e4618584ee4b": "2019-05-11T10:03:27.546Z", # RiscOS/Sources/Networking/Ethernet/EtherB
+  "6b3f215263ec6f2ce50c79d40bab624b13b8e8c7": "2019-05-11T10:03:36.043Z", # RiscOS/Sources/Networking/Ethernet/EtherCPSW
+  "959eaa618bc134fc644cf46802401ad01477e7d3": "2019-05-11T10:04:07.101Z", # RiscOS/Sources/Networking/Ethernet/EtherY
+  "cc29259315f7961350ff23005e8b1561b42ba496": "2019-05-11T10:05:05.182Z", # RiscOS/Tools/Sources/GNU/flex
+  "8dfe324391512209ca249afe02fb463d0378d646": "2019-05-11T10:05:19.488Z", # RiscOS/Tools/Sources/GNU/gawk
+  "482b6a1dc55a012c6f4366e3c98971d59bb3a8d5": "2019-05-11T10:05:28.959Z", # RiscOS/Tools/Sources/GNU/gnudiff
+  "13d9a0d672689ed885f1483040d8b93052f5dccf": "2019-05-11T10:11:29.869Z", # RiscOS/Tools/Sources/GNU/grep
+  "c2945bb2d96d6c606153e815fca6940d8dfdd779": "2019-05-11T10:11:37.065Z", # RiscOS/Tools/Sources/GNU/ident
+  "d6d4c8a780a45acbbfbf737ffd95ccc580f3c1ae": "2019-05-11T10:12:38.691Z", # RiscOS/Sources/Lib/ImageLib
+  "e6547e2615d582f148599b583a5d4b99e242d7ff": "2019-05-11T10:13:05.469Z", # RiscOS/Sources/Video/HWSupport/IMXVideo
+  "0004e1f85f38461924728a42d70b5e9eb23213b7": "2019-05-11T10:15:20.288Z", # RiscOS/Sources/Video/Render/JCompMod
+  "73fb7629d2f9fd621b83156d2cf2551d355df77f": "2019-05-11T10:15:33.560Z", # RiscOS/Tools/Sources/GNU/libgnu4
+  "44bb8972b4e70e8ffae79094d69b4235f2981c84": "2019-05-11T10:15:49.127Z", # RiscOS/Tools/Sources/GNU/libgnu
+  "e5f8f7b49c51cf599b2a077d21e68935b17fa389": "2019-05-11T10:16:38.824Z", # RiscOS/Sources/Lib/mbedTLS
+  "b18e105a06dbfa32914ec327a885a774bc925560": "2019-05-11T10:17:03.613Z", # RiscOS/Sources/HWSupport/USB/Controllers/OHCIDriver
+  "daf518f90dea7c24ad858b0f74b390be6836c9db": "2019-05-11T10:17:27.832Z", # RiscOS/Sources/Lib/OSLib
+  "55eb4abc55cde0e4c58d3447f3e1db09303f4d36": "2019-05-11T10:17:57.534Z", # RiscOS/Utilities/Perl
+  "9a8aee3cdb9c5dd4a3f5ae7dc2700380397e3dfe": "2019-05-11T10:18:06.785Z", # RiscOS/Tools/Sources/GNU/readelf
+  "d1465d72bb7ea93d93e1f4fd516c50a41d24cf2a": "2019-05-11T10:18:15.348Z", # RiscOS/Sources/Networking/AUN/RouteD
+  "319fea697572f34e7d8c70c7af0c22fd2cfe4fbb": "2019-05-11T10:18:38.220Z", # RiscOS/Tools/Sources/GNU/sed
+  "84ad545c8c98ad847bcafa8ae8a7a66632fd285e": "2019-05-11T10:19:22.804Z", # RiscOS/Sources/Video/Render/SprExtend
+  "fedfb7075eca59d2c873f258d90092988f035dc0": "2019-05-11T10:29:58.620Z", # RiscOS/Sources/HWSupport/VCHIQ
+  "fc843a66ef4651b6d5eb3d0361dc7ffdbae5aab8": "2019-05-11T10:30:10.502Z", # RiscOS/Sources/HWSupport/VFPSupport
+  "296bfe0862e29b15d936d2408768f1f4fdb7814f": "2019-05-11T10:30:36.111Z", # RiscOS/Sources/Lib/zlib
+  "e06361066c74f0ad10d84d6f40cdd9c1aadbac7f": "2019-05-11T13:59:51.247Z", # Products/All
+  "9b15a8d7217faaab83202987d714118a24e21f3a": "2019-05-11T14:00:04.065Z", # Products/Batch1to6
+  "77e6ff5ec215906cfad66c994cdc57df2774f9d6": "2019-05-11T14:00:10.832Z", # Products/BCM2835
+  "46bcff2948819bd199ab830ef680d183d24703d2": "2019-05-11T14:00:18.101Z", # Products/BCM2835Pico
+  "1ffd242594342117e45b0357d6b4086e45b64514": "2019-05-11T14:00:24.103Z", # Products/BonusBin
+  "ad179f963a9250e4626fd68f2377a88398443e7b": "2019-05-11T14:00:29.204Z", # Products/BuildHost
+  "dbe40f6e7f9426678e25b8f2e421f4ad35637fcf": "2019-05-11T14:00:42.891Z", # Products/Disc
+  "11347cf5c2cd20d605c75c01f2c2d2d399e7d049": "2019-05-11T14:00:49.802Z", # Products/iMx6
+  "95f44d09a7680963b0d0a7ec3e1151d60cab0ed0": "2019-05-11T14:00:55.393Z", # Products/IOMDHAL
+  "050926a51786d4aedf2c993c03eae44846ad6655": "2019-05-11T14:01:02.892Z", # Products/OMAP3
+  "d71cc6a7b377ca203bf4a2b63e5876cee0ab3d96": "2019-05-11T14:01:10.559Z", # Products/OMAP4
+  "ace3d0acdbde1b7412d28f6c184e9df8ed6fcb72": "2019-05-11T14:01:16.697Z", # Products/OMAP5
+  "b08c52798452894c648f32d3852b1d6a112a222f": "2019-05-11T14:01:21.801Z", # Products/PlingSystem
+  "df5b7fa8992c3041c3d6513b6d8290b2c1491e57": "2019-05-11T14:01:26.788Z", # Products/S3C
+  "9995499ef13e4886281d69da7b658aa0f5cc0792": "2019-05-11T14:01:32.304Z", # Products/Titanium
+  "829275201b89da333632998b21c243eb50e52e02": "2019-05-11T14:01:39.816Z", # Products/Tungsten
+  "ee6a4a83c4ad32bf0fa52c324f65fcadb3b3d922": "2019-05-14T16:40:27.473Z", # Products/Titanium
+  "73534cde8cc60fc1b896f968d31a4f09d0166e40": "2019-05-23T05:17:25.152Z", # RiscOS/Sources/SystemRes/InetRes
+  "2335669ef0fd2330a2a9f02c807917d0d4de4f6e": "2019-05-23T11:41:40.732Z", # RiscOS/Library
+  "16d75e8bed69636d571d1652a135b439c006dc1e": "2019-05-23T14:08:43.134Z", # RiscOS/BuildSys
+  "e66f346e23654c15154efef6c8152bc3cc9bf521": "2019-05-24T07:07:49.948Z", # RiscOS/Apps/PlingPrepare
+  "64414d7910135ee5ca20f086ca2cdeace59d5afa": "2019-05-24T18:05:36.882Z", # RiscOS/BuildSys
+  "348ee0e441ad46861b5785607df81af8914cc868": "2019-05-25T07:59:53.216Z", # Products/All
+  "003f6b2bc48f9f712890833592de890a31185e0c": "2019-06-01T14:00:50.123Z", # RiscOS/Sources/Apps/Maestro
+  "873c210685052b04d1bf304b7753c9c6ce9712ec": "2019-06-03T13:22:41.618Z", # RiscOS/Sources/Networking/Omni/Protocols/OmniLanManFS
+  "09cc90aee795743414b9d83b9f987a68fa5f20f8": "2019-06-04T22:01:18.357Z", # RiscOS/Env
+  "5ad5163bdd1f6ce10f9ca440b8291e9f951a620a": "2019-06-04T22:01:46.641Z", # RiscOS/Sources/Networking/Omni/Protocols/OmniLanManFS
+  "39485b7c7a80fa91ed41410703b67b9b4fd734c4": "2019-06-05T20:19:19.552Z", # RiscOS/Sources/Desktop/Wimp
+  "c2f5455f14e4607202d61ecfc01d5822bfa6274b": "2019-06-08T07:59:05.291Z", # RiscOS/Sources/Desktop/TaskWindow
+  "fbb7e4e073f9ca02980f5f1bbe01b58443112c2f": "2019-06-08T10:37:33.780Z", # RiscOS/Sources/Apps/Paint
+  "0857587f531ef24b428edbd68ae34c66338993eb": "2019-06-08T10:46:24.052Z", # RiscOS/Sources/Apps/Draw
+  "6982f5cceafbb64e359693ba75d8c58ad8e1b6ff": "2019-06-09T21:22:32.257Z", # RiscOS/Sources/Lib/RISC_OSLib
+  "0289650a6f5c432246593d8ddbd402cd6aa9dbe6": "2019-06-18T12:48:44.597Z", # RiscOS/Sources/FileSys/PCCardFS/PCCardFS
+  "7c2fe7dcb78bcd128b48af582788e24c8737d5d0": "2019-06-18T15:43:40.086Z", # RiscOS/Sources/HAL/HAL_BCM2835
+  "e1160d90d0e994a51890e60d8eec2e7818adb2bb": "2019-06-22T11:41:38.591Z", # RiscOS/Sources/Lib/mbedTLS
+  "87ea8ac2cf8798fab1a3ff020d5299c3f083c94b": "2019-06-22T16:51:04.333Z", # RiscOS/Sources/Desktop/Wimp
+  "ad29219032d67959617dc8470dc83cbf08c3b4fa": "2019-06-24T21:45:18.564Z", # RiscOS/Sources/Programmer/HdrSrc
+  "e604b89ce92dad772a442c1fb9f72d60b11aba3e": "2019-06-24T21:46:31.591Z", # RiscOS/Sources/Kernel
+  "360be29044c7fe9d2f3f1f74b996bb2dee1af963": "2019-06-24T21:47:40.173Z", # RiscOS/Sources/Video/HWSupport/BCMVideo
+  "620ec992c0a72a5b7983f6efd1bf4b0da380bb0d": "2019-06-28T12:59:29.331Z", # RiscOS/Sources/FileSys/FSLock
+  "ff78d99712621f87e861df9f4e06fe65efcf311f": "2019-06-29T07:45:38.988Z", # RiscOS/Sources/HWSupport/SD/SDIODriver
+  "d71c49f81711759c10c6b25484cb8175949a38df": "2019-06-29T07:45:51.241Z", # RiscOS/Sources/HWSupport/BCMSupport
+  "a85663de64ae3097612dd28ed3de67480331dc7c": "2019-06-29T07:46:20.460Z", # RiscOS/Sources/Programmer/BASIC
+  "fc49beafd833cc4dde7cfc2af1b1e1d2e217ac6a": "2019-07-02T22:04:06.248Z", # RiscOS/Sources/Kernel
+  "b613fdbbb57aa944090a107e6dbfaf7e6158b6ef": "2019-07-02T22:04:32.374Z", # RiscOS/Sources/Video/UserI/ScrModes
+  "f5de9f4a23052a92f0e3028d21da0ccc79073c7d": "2019-07-02T22:05:06.444Z", # RiscOS/Sources/Video/HWSupport/BCMVideo
+  "5822bffa06945f812a55af5c63f05bc93e64efef": "2019-07-02T22:05:55.239Z", # RiscOS/Sources/Video/HWSupport/GC320VideoBlob
+  "ada0df77886b1845164f9806a29b02cc2c5d15d4": "2019-07-02T22:06:15.322Z", # RiscOS/Sources/Video/HWSupport/IMXVideo
+  "f4ee826b179316478c331f54ffe7e3b41cab78c7": "2019-07-02T22:06:28.093Z", # RiscOS/Sources/Video/HWSupport/NVidia
+  "e285399de40410e733031424db5ecdd6309dd1f9": "2019-07-02T22:06:41.337Z", # RiscOS/Sources/Video/HWSupport/OMAPVideo
+  "26c7a3f93253daf6fdd6283e7b0cd07889c5cd6b": "2019-07-02T22:07:18.008Z", # RiscOS/Sources/Video/HWSupport/VIDC20Video
+  "eefda4a2662e4746944a5fceb58fa114a4f9387b": "2019-07-02T22:11:51.702Z", # RiscOS/Sources/Video/HWSupport/UDLVideo
+  "9a09a85589cd1a79315e77d1b363af901a322115": "2019-07-06T08:34:21.460Z", # RiscOS/Sources/Programmer/Debugger
+  "742c9bef8ae0230874d6699a96f57b3d5af36053": "2019-07-06T08:34:34.479Z", # RiscOS/Library
+  "e19eb2738bdc38b77ecef9d45e49975084a929bd": "2019-07-06T08:35:11.430Z", # RiscOS/Sources/Video/HWSupport/BCMVideo
+  "1f78441a44e6354557d9d2d0b40f60bd9cf4ef6d": "2019-07-06T08:35:23.822Z", # RiscOS/Sources/Video/HWSupport/OMAPVideo
+  "20984a33bfc81596f3cced8be169f4d3c213a58d": "2019-07-08T22:50:22.288Z", # RiscOS/Sources/Lib/RISC_OSLib
+  "0e991b6b4842d25df785dd685c808b5ca631e550": "2019-07-13T07:35:56.723Z", # RiscOS/Sources/Lib/NBLib
+  "ef64e1a4070a41a24da5c40181df56d3a4f4806c": "2019-07-15T20:10:51.941Z", # RiscOS/Sources/Video/HWSupport/OMAPHDMIBlob
+  "79a725757b2987e1f01a40f57b6ff65a47cc44a9": "2019-07-15T20:11:09.829Z", # RiscOS/Sources/Programmer/HdrSrc
+  "f8dae0561762272380044f8aebf83783a7978e72": "2019-07-20T07:12:16.811Z", # RiscOS/Sources/HWSupport/BCMSupport
+  "903f38920bf6c5d3942ac9e6d195a544477e0b18": "2019-07-20T07:13:05.553Z", # RiscOS/Sources/HWSupport/SD/SDIODriver
+  "7cebc1640b36ab9f44ec483c13a442f7d58b4b9c": "2019-07-20T07:18:56.685Z", # RiscOS/Sources/HAL/HAL_OMAP5
+  "4022e43f3e11dd3f22498ec48d8a021923aeb20d": "2019-07-20T07:39:50.615Z", # RiscOS/BuildSys
+  "37d148dd60fd7d1dca4a99bac13d7348e1230b3a": "2019-07-20T08:21:46.545Z", # Products/OMAP5
+  "14d0a6d62bbbe7f5a12c510a9a9e4c2f6f1ab38d": "2019-07-27T08:07:19.378Z", # RiscOS/Sources/Lib/RISC_OSLib
+  "12a389b23a27a00ec36d2b23b0e62034ea2a63d0": "2019-08-03T21:20:14.347Z", # RiscOS/Sources/HAL/HAL_BCM2835
+  "34d04d6b2ba8a1e299ced41ebdf988bce827da01": "2019-08-10T11:06:00.058Z", # RiscOS/Sources/HAL/HAL_BCM2835
+  "029f88ff2678435cf02ebdb3820cbaac8426597d": "2019-08-10T11:06:26.383Z", # RiscOS/Sources/HWSupport/SD/SDIODriver
+  "b3b95b4bc84d7d1eb9f3d42c7b6613a94421c1f4": "2019-08-16T12:22:43.187Z", # RiscOS/Sources/Kernel
+  "b20c8032d35c39b87f0b8d86ee617058c15a476b": "2019-08-16T12:23:03.752Z", # RiscOS/Sources/Apps/FormEd
+  "3be21b3bcd0a84528adce9244b8541e9b69adf5b": "2019-08-17T11:35:03.894Z", # RiscOS/Sources/Apps/Paint
+  "32f2e3897db8c7eb48601f8f5c09f41eb5c566b9": "2019-08-17T14:08:53.806Z", # RiscOS/Sources/Desktop/Wimp
+  "ce813bb2a3728b972cfca4ac117e78530902d2cb": "2019-08-17T14:35:12.883Z", # RiscOS/Sources/SystemRes/LoadWimp
+  "a6edfe0c346129bb4e0b112a50fb7e6f97434b7c": "2019-08-17T14:43:12.107Z", # RiscOS/Sources/SystemRes/DesktopBoot
+  "7d91c6019515d3a77ef1947da525b44fd4e2c39e": "2019-08-19T22:04:04.598Z", # RiscOS/Sources/Programmer/HdrSrc
+  "21ff3d723f47a96b46d1f2d322d31a81b6bec747": "2019-08-19T22:04:26.543Z", # RiscOS/Library
+  "fc93042136d6a83c5bf3699657da82c76e4619b8": "2019-08-22T07:19:08.959Z", # RiscOS/Sources/FileSys/ADFS/ADFSFiler
+  "eff0967cb6853bd185449ccde80e3c480619f837": "2019-08-25T17:19:12.241Z", # RiscOS/Sources/Apps/Paint
+  "30d277db366b17e3518d6365855ef1ed501bd954": "2019-08-25T17:19:44.203Z", # RiscOS/Sources/FileSys/ADFS/ADFSFiler
+  "2793a7a23dd94bd75b41f6fddb290e3aa6aeb714": "2019-08-25T17:21:07.704Z", # RiscOS/Sources/HAL/HAL_Titanium
+  "ddf8d828ba36a21d44b733a787915e24b38c8f83": "2019-08-30T23:00:12.412Z", # RiscOS/Sources/SystemRes/InetRes
+  "ae3da5a739149212a9669d091cff158c07da5630": "2019-09-09T17:42:09.654Z", # RiscOS/Sources/Networking/Fetchers/AcornSSL
+  "dda94028debe6c5c3459d13d017eafd0a02f2a02": "2019-09-12T12:19:24.821Z", # RiscOS/Sources/Programmer/HdrSrc
+  "ea143e3f5cc6db6170b938088b6fe90a632d7b73": "2019-09-14T07:23:52.286Z", # RiscOS/Sources/HWSupport/BCMSupport
+  "91be98a0bd46bf3111e0c726e47bcd112ce826f5": "2019-09-21T07:49:16.983Z", # RiscOS/Sources/Lib/mbedTLS
+  "bd294cf9980dc8929d58a777150d0450ecd56fc2": "2019-09-21T07:49:28.943Z", # RiscOS/Sources/Kernel
+  "18f461a570571d004825166f96fd5356273e43d9": "2019-09-22T16:43:57.277Z", # RiscOS/Sources/Apps/Paint
+  "6a84fc4e05c3250b21730dfa0c17c1d15e5ae40f": "2019-09-26T07:15:55.523Z", # RiscOS/Sources/Apps/Paint
+  "b886fe56f3d5a837001a396aa9b03694b221988b": "2019-09-26T22:19:34.386Z"  # RiscOS/Sources/Apps/Paint
+}
+
 rearrange_date = datetime.datetime(2011, 3, 17, 19, 32).timestamp()
 cvs_end_date = datetime.datetime(2019, 5, 1).timestamp()
-
-def dict_factory(*x):
-    return collections.defaultdict(dict_factory, *x)
-
-def load_push_cache():
-    global push_cache
-    try:
-        with open(push_cache_file, "rb") as f:
-            push_cache = json.load(f, object_hook=dict_factory)
-    except FileNotFoundError:
-        push_cache = dict_factory()
-
-def save_push_cache():
-    fn = push_cache_file + ".tmp"
-    with open(fn, "w") as f:
-        json.dump(push_cache, f)
-    os.rename(fn, push_cache_file)
-
-def get_pushes(path, update):
-    d = push_cache[path]
-    branches = d["branches"]
-    if update:
-        latest = d.get("latest", "2019-05-01")
-        url = "https://gitlab.riscosopen.org/api/v4/projects/" + urllib.parse.quote(path, safe="") +"/events?action=pushed&after=" + latest
-        print("Fetching " + url)
-        with urllib.request.urlopen(url) as f:
-            j = json.load(f)
-            pprint.pprint(j)
-
-        for event in j:
-            push_data = event["push_data"]
-            if push_data["ref_type"] == "branch":
-                date = event["created_at"]
-                branches[push_data["ref"]][push_data["commit_from"]] = date
-                if date > latest:
-                    latest = date
-
-        d["latest"] = latest
-    return branches
 
 class Commit:
     def __lt__(a, b):
@@ -188,7 +268,7 @@ class CommitPtr:
     def get(self):
         return self.list[self.index]
 
-def load_repository(name, repo, update=True, prefix="refs/heads/"):
+def load_repository(name, repo, prefix="refs/heads/"):
 
     def load_commit(oid):
         c = commits.get(oid)
@@ -208,8 +288,6 @@ def load_repository(name, repo, update=True, prefix="refs/heads/"):
         commits[oid] = c
         return c
 
-    branches = get_pushes(name, update)
-
     commits = dict()
     refs = dict()
 
@@ -219,12 +297,11 @@ def load_repository(name, repo, update=True, prefix="refs/heads/"):
             if ref.type == pygit2.GIT_REF_OID:
                 ref1 = ref1[len(prefix):]
                 commit_list = list(load_commit(ref.target))
-                commit_dict = branches[ref1]
                 min_time = 0
                 for commit in reversed(commit_list):
                     if commit.committer.time < min_time:
                         commit.committer = pygit2.Signature(email=commit.committer.email, name=commit.committer.name, time=min_time)
-                    new_time = commit_dict.get(str(commit.oid))
+                    new_time = redate_map.get(str(commit.oid))
                     if new_time is not None:
                         new_time = int(datetime.datetime.strptime(new_time, "%Y-%m-%dT%H:%M:%S.%fZ").timestamp())
                         if new_time > min_time:
