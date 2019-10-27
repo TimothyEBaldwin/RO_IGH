@@ -139,14 +139,20 @@ def split_branch(ref1):
 
     for unified_id in reversed(unified_ids):
         unified = repo[unified_id]
+        unified_message = unified.message.strip()
         for ie in index:
             if ie.mode == pygit2.GIT_FILEMODE_COMMIT:
                 tid = read_tree(unified.tree_id, ie.path)
                 if tid != repo[ie.id].tree_id:
-                    ie.id =repo.create_commit(None, unified.author, unified.committer, unified.message, tid, [ie.id])
+                    message = unified_message
+                    name = posixpath.basename(ie.path)
+                    if message.lower().startswith(name.lower() + ":"):
+                        message = message[len(name) + 2:].strip()
+                        unified_message = name + ": " + message
+                    ie.id = repo.create_commit(None, unified.author, unified.committer, message, tid, [ie.id])
                     new_refs[ref1 + "-" + ie.path] = ie.id
                     index.add(ie)
-        split_id = repo.create_commit(None, unified.author, unified.committer, unified.message, index.write_tree(repo), [split_id])
+        split_id = repo.create_commit(None, unified.author, unified.committer, unified_message, index.write_tree(repo), [split_id])
         unified2submodule[unified_id] = split_id
 
     new_refs[ref1 + "-split"] = split_id
